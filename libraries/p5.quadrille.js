@@ -131,15 +131,17 @@ class Quadrille {
   p5.prototype.createBoard = function(width, height) {
     return new Quadrille(width, height);
   };
-  p5.prototype.createPoliomino = function(){//create a quadrille with a n-mino, filled with filler
-    n=arguments[0];
+  p5.prototype.createPoliomino = async(n,object)=>{//create a quadrille with a n-mino, filled with filler
     if(!(n>0 && typeof n === "number" && Math.floor(n)==n)){ throw new Error(`n-minos doesn't exist`);
    }else{
-    let poliquadrille = poliominoGenerator(arguments);
-    
+/*    poliominoGenerator(n,object).then(value =>{
+     let poliquadrille = value;
     console.log("tried", poliquadrille);
     total = undefined;
     return poliquadrille;
+   }); */
+   let poliquadrille = await poliominoGenerator(n,object);
+   return poliquadrille;
   }
   }
   p5.prototype.drawBoard = function(quadrille, LENGTH = 10, outlineWeight = 1, outline = this.color('#FBBC04'), fill = this.color('#859900')) {
@@ -191,8 +193,8 @@ var adder;
 var children = {};
 var stime,dtime,ldtime ;//start time, total time of generating poliominos,verification of the end
 //extra functions for polyomino generations
- function poliominoGenerator(){
-  var i,fn,n = arguments["0"]["0"];
+const poliominoGenerator = async(n,object)=>{
+  var i,fn;
   console.log("generating ",n,"-minos");
  dtime=0,ldtime = 0,poliprocess = true;
   grid = {
@@ -202,20 +204,58 @@ var stime,dtime,ldtime ;//start time, total time of generating poliominos,verifi
   stime = new Date().getTime();//initial time
   net = [[(grid.x-1)/2,(grid.y-1)/2]];//,[(grid.x-1)/2 ,(grid.y-1)/2 + 1]];
   nets = [];//array with all pieces
-  poliprocess = true;//verify if still finding poliomino;
   fn = function () {return ;};
   for (i=n-1; i>0; i--) {
    fn = makeAdder(i,fn);
   }
   adder = fn; 
   picture(); 
-  idinterval1 = setInterval(()=>{matricial(arguments["0"])},20);
+  let poliomino = await asynchonic(n,object);
+  return poliomino
+}
+function asynchonic(n,filler){
+  console.log("lol");
   idinterval2= setInterval(picture,1);
-  return total;
+  return new Promise((resolve)=>{
+    idinterval1 = setInterval(()=>{ 
+    if(ldtime == dtime){
+    let ln=nets[nets.length-1];
+    console.log(n,"poliomino took ",dtime, "seconds");
+    clearInterval(idinterval1);
+    clearInterval(idinterval2);
+    if(nets.length >=2){
+      let tried = ln[Math.floor(Math.random()* ln.length)];
+       let ready = matricialize(tried,filler);
+       resolve(ready);
+    }
+  }else
+    ldtime = dtime},20);
+  }) 
+}
+function matricialize(tried,filler){
+  let maxx=0,maxy =0,miny=0;
+  tried.forEach((point) => {
+    if(point[1]>maxy) maxy = point[1];
+    if(point[1]<miny) miny = point[1];
+    if(point[0]>maxx) maxx = point[0];
+  });
+  tried.forEach((point) => {
+    if(point[1]>maxy) maxy = point[1];
+    if(point[1]<miny) miny = point[1];
+    if(point[0]>maxx) maxx = point[0];
+  });
+  let total = createQuadrille(Array.from({length: (maxy-miny+1)},()=>Array.from({length: maxx+1},()=>0)));
+  tried.forEach((point)=>{
+    point[1]=point[1]-miny;});
+    if(filler)
+    total.changeNode(tried,filler);
+    else total.changeNode(tried,color('cyan'));
+    console.table(total);
+    return total;
 }
 function matricial(){
-  let filler = arguments["0"]["1"],n = arguments["0"]["0"];
   if(ldtime == dtime){
+    let filler = arguments["0"]["1"],n = arguments["0"]["0"];
     let maxx=0,maxy =0,miny=0,ln=nets[nets.length-1];
     console.log(n,"poliomino took ",dtime, "seconds");
     clearInterval(idinterval1);
@@ -233,7 +273,7 @@ function matricial(){
       if(filler)
       total.changeNode(tried,filler);
       else total.changeNode(tried,color('cyan'));
-      poliprocess = false;
+      resolve(total);
       console.table(total);
       return total;
     }

@@ -4,28 +4,33 @@ const LENGTH = 20;
 var quadrille;
 var board;
 var ex = 2, yi = 2;
-var pepe;
+var pepe,pepa;
+function preload() {
+createPoliomino(6,'🙈').then(value =>{
+  pepe = value;
+})
+createPoliomino(6,'👾').then(value =>{
+    pepa = value;
+  })
+}
 function setup() {
   createCanvas(COLS * LENGTH, ROWS * LENGTH);
   board = createBoard(ROWS, COLS);
-  quadrille = createQuadrille([[color('cyan'), '👽', 0],
-  [0, '🤔', '🙈'],
-  [0, color('#770811'), 0],
-  ['g', 'o', 'l']
-  ]);
 }
 
 function draw() {
   background('#060621');
   drawBoard(board, LENGTH);
-  drawQuadrille(quadrille, ex, yi, LENGTH, 2, 'green');
+  if(pepa){drawQuadrille(pepa, ex, yi, LENGTH, 2, 'green');}
+  if(pepe){
+  drawQuadrille(pepe,ex,yi+5,LENGTH,2,"green");}
 }
 
 function keyPressed() {
   if (keyCode === LEFT_ARROW) {
-    quadrille.reflect();
+    pepa.reflect();
   } else if (keyCode === RIGHT_ARROW) {
-    quadrille.rotate();
+    pepe.rotate();
   }
   if (key === 'a') {
     ex--;
@@ -40,10 +45,10 @@ function keyPressed() {
     yi--;
   }
   if (key === 'g') {
-    glue(quadrille, yi, ex, false);
+    glue(pepe, yi, ex, false);
   }
   if (key === 'v') {
-    glue(quadrille, yi, ex);
+    glue(pepa, yi, ex);
   }
 }
 
