@@ -2,6 +2,7 @@ const ROWS = 20;
 const COLS = 10;
 const LENGTH = 20;
 var quadrille;
+var showme;
 var clone;
 var x = 2, y = 2;
 
@@ -21,6 +22,7 @@ function draw() {
   background('#060621');
   drawQuadrille(quadrille, x, y, LENGTH, 2, 'green');
   drawQuadrille(clone, 2, 8, LENGTH, 0);
+  showme = quadrille.clone();
 }
 
 function keyPressed() {
@@ -32,17 +34,17 @@ function keyPressed() {
   if (key === 'a') {
     x = x > 0 ? x - 1 : x;
   }
-  if (key === 's') {
+  if (key === 'd') {
     x = x < COLS - quadrille.width ? x + 1 : x;
   }
-  if (key === 'w') {
+  if (key === 's') {
     y = y > 0 ? y - 1 : y;
   }
-  if (key === 'z') {
+  if (key === 'w') {
     y = y < ROWS - quadrille.height ? y + 1 : y;
   }
 }
 
 function debugQuadrille(quadrille) {
-  console.log(quadrille.shape);
+  console.log(quadrille.memory2D);
 }

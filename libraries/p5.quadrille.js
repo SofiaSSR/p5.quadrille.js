@@ -114,8 +114,13 @@ class Quadrille {
     // iii. return resulted quadrille and memory hit counter
     return { quadrille: result, memoryHitCounter };
   }
+  changeNode(coords,newob){//can pass an array of coordinates or one coordinate and change it with the newvalue
+    if(coords[0] instanceof Array)
+    coords.forEach((coord2)=>{this._memory2D[coord2[1]][coord2[0]] = newob;})
+    else
+        this._memory2D[coords[0]][coords[1]] = newob;
+  }
 }
-
 // Details here:
 // https://github.com/processing/p5.js/blob/main/contributor_docs/creating_libraries.md
 (function () {
@@ -126,7 +131,17 @@ class Quadrille {
   p5.prototype.createBoard = function(width, height) {
     return new Quadrille(width, height);
   };
-
+  p5.prototype.createPoliomino = function(){//create a quadrille with a n-mino, filled with filler
+    n=arguments[0];
+    if(!(n>0 && typeof n === "number" && Math.floor(n)==n)){ throw new Error(`n-minos doesn't exist`);
+   }else{
+    let poliquadrille = poliominoGenerator(arguments);
+    
+    console.log("tried", poliquadrille);
+    total = undefined;
+    return poliquadrille;
+  }
+  }
   p5.prototype.drawBoard = function(quadrille, LENGTH = 10, outlineWeight = 1, outline = this.color('#FBBC04'), fill = this.color('#859900')) {
     this.drawQuadrille(quadrille, 0, 0, LENGTH, outlineWeight, outline, fill);
   }
@@ -161,4 +176,203 @@ class Quadrille {
     }
     this.pop();
   }
+  p5.prototype.changeNode = function(quadrille,coords,newob){//can pass an array of coordinates or one coordinate and change it with the newvalue
+    quadrille.changeNode(coords,newob);
+    return quadrille._memory2D;}
 })();
+var grid;
+var halt;
+var total, poliprocess;//the polyomino made quadrille, verify polyomino in process
+var idinterval1, idinterval2;
+var net;
+var dirs = [[0,1],[1,0],[0,-1],[-1,0]];
+var nets;
+var adder;
+var children = {};
+var stime,dtime,ldtime ;//start time, total time of generating poliominos,verification of the end
+//extra functions for polyomino generations
+ function poliominoGenerator(){
+  var i,fn,n = arguments["0"]["0"];
+  console.log("generating ",n,"-minos");
+ dtime=0,ldtime = 0,poliprocess = true;
+  grid = {
+   x: 2*n-3,
+   y: 2*n-1,}
+  halt = false;
+  stime = new Date().getTime();//initial time
+  net = [[(grid.x-1)/2,(grid.y-1)/2]];//,[(grid.x-1)/2 ,(grid.y-1)/2 + 1]];
+  nets = [];//array with all pieces
+  poliprocess = true;//verify if still finding poliomino;
+  fn = function () {return ;};
+  for (i=n-1; i>0; i--) {
+   fn = makeAdder(i,fn);
+  }
+  adder = fn; 
+  picture(); 
+  idinterval1 = setInterval(()=>{matricial(arguments["0"])},20);
+  idinterval2= setInterval(picture,1);
+  return total;
+}
+function matricial(){
+  let filler = arguments["0"]["1"],n = arguments["0"]["0"];
+  if(ldtime == dtime){
+    let maxx=0,maxy =0,miny=0,ln=nets[nets.length-1];
+    console.log(n,"poliomino took ",dtime, "seconds");
+    clearInterval(idinterval1);
+    clearInterval(idinterval2);
+    if(nets.length >=2){
+      let tried = ln[Math.floor(Math.random()* ln.length)];
+      tried.forEach((point) => {
+        if(point[1]>maxy) maxy = point[1];
+        if(point[1]<miny) miny = point[1];
+        if(point[0]>maxx) maxx = point[0];
+      });
+		let total = createQuadrille(Array.from({length: (maxy-miny+1)},()=>Array.from({length: maxx+1},()=>0)));
+		tried.forEach((point)=>{
+      point[1]=point[1]-miny;});
+      if(filler)
+      total.changeNode(tried,filler);
+      else total.changeNode(tried,color('cyan'));
+      poliprocess = false;
+      console.table(total);
+      return total;
+    }
+  }else
+    ldtime = dtime  }
+  function checkNet(n,ns) {
+    var i,j,k,l,nl,nn,nnn,equal;
+    nl = n.length;
+    if (!ns[nl])
+    return false;
+    nn = normaliseNet(n);
+    for (j=0;j<2;j++) {
+for (i=0;i<nn.length;i++) {
+  nn[i] = [nn[i][1],nn[i][0]];
+}
+for (k=0;k<4;k++) {
+    for (i=0;i<nn.length;i++) {
+      nn[i] = [-nn[i][1],nn[i][0]];
+    }
+    nnn = normaliseNet(nn);
+    for (l=0;l<ns[nl].length;l++) {
+      equal = true;
+      for (i=0; i< nnn.length; i++) {
+        if (nnn[i][0] != ns[nl][l][i][0]) {
+          equal = false;
+          break;
+        }
+        if (nnn[i][1] != ns[nl][l][i][1]) {
+          equal = false;
+          break;
+        }
+      }
+      if (equal) {
+      return ns[nl][l];
+    }
+  }
+}
+}
+return false;
+}
+function normaliseNet(n) {
+  var nn,i;
+  nn = [];
+  for (i=0;i<n.length;i++) {
+    nn[i] = [n[i][0],n[i][1]];
+  }
+  nn.sort(blockSort);
+  for (i=1;i<nn.length;i++) {
+nn[i][0] -= nn[0][0];
+nn[i][1] -= nn[0][1];
+  }
+  nn[0] = [0,0];
+  return nn;
+}
+function picture(){
+  var pnet,rnet;
+  if (halt) {
+return;
+  }
+   adder(true);
+  rnet = checkNet(net,nets);
+  if (rnet) {
+pnet = rnet;
+  } else {
+if (!nets[net.length])
+    nets[net.length] = [];
+pnet = normaliseNet(net);
+nets[net.length].push(pnet);
+  }
+  dtime = ((new Date().getTime() - stime)/1000).toFixed(3);
+;}
+
+function makeAdder (lvl,fn) {
+  var sq = 0;
+  var nsq = -1;
+  return function (stop) {
+var newsq,isnew,i,added,rnet,pnet;
+if (net.length < lvl) {
+    return false;
+}
+if (fn()) {
+    return true;
+}
+if (net.length == lvl) {
+    sq = 0;
+    nsq = - 1;
+}
+net.length = lvl;
+added = false;
+while (!added) {
+    nsq++;
+    if (nsq == 4) {
+  nsq = 0;
+  sq++;
+    }
+    if (sq >= lvl) {
+  if (stop) {
+      halt = true;
+  }
+  break;
+    }
+    newsq = [net[sq][0]+dirs[nsq][0],net[sq][1]+dirs[nsq][1]];
+    isnew = true;
+    for (i=0;i<lvl;i++) {
+  if (net[i][0] == newsq[0] && net[i][1] == newsq[1]) {
+      isnew = false;
+      break;
+  }
+    }
+    if (isnew) {
+  pnet = normaliseNet(net);
+  net.push(newsq);
+  rnet = checkNet(net,nets);
+  if (rnet) {
+      if (!children[JSON.stringify(rnet)])
+    children[JSON.stringify(rnet)] = {};
+      children[JSON.stringify(rnet)][JSON.stringify(pnet)] = true;
+      net.pop();
+      added = false;
+  } else {
+      added = true;
+  }
+    }
+}
+return added;
+  }
+}
+function blockSort(p,q) {
+  if (p[0] < q[0]) {
+return -1;
+  }
+  if (p[0] > q[0]) {
+return 1;
+  }
+  if (p[1] < q[1]) {
+return 1;
+  }
+  if (p[1] > q[1]) {
+return -1;
+  }
+  return 0;
+}

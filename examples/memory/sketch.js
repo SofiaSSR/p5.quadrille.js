@@ -4,7 +4,10 @@ const LENGTH = 20;
 var quadrille;
 var board;
 var x = 2, y = 2;
-
+var pepe
+function preload() {
+  pepe = createPoliomino(6,'🙈');
+}
 function setup() {
   createCanvas(COLS * LENGTH, ROWS * LENGTH);
   board = createBoard(ROWS, COLS);
@@ -19,6 +22,8 @@ function draw() {
   background('#060621');
   drawBoard(board, LENGTH);
   drawQuadrille(quadrille, x, y, LENGTH, 2, 'green');
+  if(pepe){
+  drawQuadrille(pepe,x,y+5,LENGTH,2,"green");}
 }
 
 function keyPressed() {
@@ -30,14 +35,14 @@ function keyPressed() {
   if (key === 'a') {
     x--;
   }
-  if (key === 's') {
+  if (key === 'd') {
     x++;
   }
   if (key === 'w') {
-    y--;
-  }
-  if (key === 'z') {
     y++;
+  }
+  if (key === 's') {
+    y--;
   }
   if (key === 'g') {
     glue(quadrille, y, x, false);
