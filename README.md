@@ -1,13 +1,12 @@
 # p5.quadrille.js
 
-[p5.js](https://p5js.org/) [quadrille](https://en.wikipedia.org/wiki/Square_tiling) library.
-
 # p5.js quadrille functions
 
 * `createQuadrille(array2D)`: Creates a _filled_ quadrille from a 2D array which may contain any combination of [p5 colors](https://p5js.org/reference/#/p5.Color), chars, [emojis](https://emojipedia.org/) and zeros (for empty cells). [See the examples](#examples).
 * `createBoard(width, height)`: Creates an initiallly empty quadrille, a _board_, having `width * height` cells. [See the examples](#examples).
 * `drawQuadrille(quadrille, row, col)`: Draws the `quadrille` at `(row, col)`. [See the examples](#examples).
 * `drawBoard(board)`: Draws the board `quadrille` at `(0, 0)`. [See the examples](#examples).
+* `GeneratePoliomino(n,object)`: Return a promise(for n < 6 maximum time is 0,03 s) that return a quadrille object that represents a random n-mino,(all n-minos at the end are created to ensure choice) filled with the given object,it need to be on preload.
 
 # Quadrille
 
@@ -22,6 +21,8 @@
 * `clone()`: Performs a deep copy of the quadrille. May be used in conjunction with `reflect` & `rotate` to create different quadrille instances. [See the examples](#examples).
 * `add(quadrille, x, y)`: Adds passed `quadrille` at `(x, y)`. [See the examples](#examples).
 * `clear()`: Fills quadrille memory with 0's.
+
+* `changeNodes(coords, filler)`: coords is an array or a sigle  coordinate [x,y], replace what was in the coordinate with the given filler.
 
 # Examples
 
@@ -95,7 +96,31 @@ function glue(quadrille, row, col, validate = true) {
   }
 }
 ``` 
+Poliomino Generation in accion.Excerpt from the [polyomino example]()
+```js
+var pepe,pepu;
+function setup() {
+  let word = createCanvas(COLS * LENGTH, ROWS * LENGTH);
+  board = createBoard(ROWS, COLS);
+  let div = document.getElementById("canvas");
+ word.parent(div);
+ createPoliomino(5,'🥰').then(value =>{
+  pepu = value;
+  createPoliomino(7,'👾').then(value=>{
+    pepe = value
+  })
+}) 
+}
 
+function draw() {
+  background('#060621');
+  drawBoard(board, LENGTH);
+  if(pepe){
+  drawQuadrille(pepe,ex+5,yi,LENGTH,2,"green");}
+  if(pepu){
+  drawQuadrille(pepu,ex,yi+5,LENGTH,2,"green");}
+}
+```
 # TODOs
 
 1. Implement a quadrille algebra: `union`, `intersection` and `diff`, like it is done in [constructive solid geometry](https://en.wikipedia.org/wiki/Constructive_solid_geometry). Observe that:
@@ -114,3 +139,9 @@ To run and hack the [glyphs example](https://github.com/objetos/p5.quadrille.js/
 1. Clone the repo (`git clone https://github.com/objetos/p5.quadrille.js`) and open it with your favorite editor.
 2. Install the [p5-vscode extension](https://marketplace.visualstudio.com/items?itemName=samplavigne.p5-vscode).
 3. Head over `examples/glyphs/index.html` and press your editor `Go Live` button.
+
+<p align="right"><img src="https://seeklogo.com/images/U/Universidad_Nacional_de_Colombia_-_Sede_Bogot_and__225_-logo-A05EAD6D0F-seeklogo.com.png" width="30%"></p>
+
+[p5.js](https://p5js.org/) [quadrille](https://en.wikipedia.org/wiki/Square_tiling) library.
+**Developers:** Principal: Jean Pierre Charalambos, Update: Sofia Salinas
+**Date**December 7 of 2020

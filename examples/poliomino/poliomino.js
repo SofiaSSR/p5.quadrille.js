@@ -1,34 +1,34 @@
 const ROWS = 20;
-const COLS = 10;
+const COLS = 30;
 const LENGTH = 20;
-var quadrille;
 var board;
 var ex = 2, yi = 2;
-var pepe,pepa;
-function preload() {
-createPoliomino(6,'🙈').then(value =>{
-  pepe = value;
-})
-createPoliomino(6,'👾').then(value =>{
-    pepa = value;
-  })
-}
+var pepe,pepu;
 function setup() {
-  createCanvas(COLS * LENGTH, ROWS * LENGTH);
+  let word = createCanvas(COLS * LENGTH, ROWS * LENGTH);
   board = createBoard(ROWS, COLS);
+  let div = document.getElementById("canvas");
+ word.parent(div);
+ createPoliomino(5,'🥰').then(value =>{
+  pepu = value;
+  createPoliomino(7,'👾').then(value=>{
+    pepe = value
+  })
+}) 
 }
 
 function draw() {
   background('#060621');
   drawBoard(board, LENGTH);
-  if(pepa){drawQuadrille(pepa, ex, yi, LENGTH, 2, 'green');}
   if(pepe){
-  drawQuadrille(pepe,ex,yi+5,LENGTH,2,"green");}
+  drawQuadrille(pepe,ex+5,yi,LENGTH,2,"green");}
+  if(pepu){
+  drawQuadrille(pepu,ex,yi+5,LENGTH,2,"green");}
 }
 
 function keyPressed() {
   if (keyCode === LEFT_ARROW) {
-    pepa.reflect();
+    pepu.reflect();
   } else if (keyCode === RIGHT_ARROW) {
     pepe.rotate();
   }
@@ -38,17 +38,17 @@ function keyPressed() {
   if (key === 'd') {
     ex++;
   }
-  if (key === 'w') {
+  if (key === 's') {
     yi++;
   }
-  if (key === 's') {
+  if (key === 'w') {
     yi--;
   }
   if (key === 'g') {
-    glue(pepe, yi, ex, false);
+    glue(pepe, yi, ex+5, false);
   }
   if (key === 'v') {
-    glue(pepa, yi, ex);
+    glue(pepu, yi+5, ex);
   }
 }
 

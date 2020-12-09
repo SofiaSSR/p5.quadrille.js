@@ -120,6 +120,19 @@ class Quadrille {
     else
         this._memory2D[coords[0]][coords[1]] = newob;
   }
+/*   union(pquadrille,qquadrille){
+    let result,maxx = pquadrille[0].length,maxy=pquadrille.length;
+    if (qquadrille.length>maxy) maxy = qquadrille.length;
+    if (qquadrille[0].length>maxy) maxx = qquadrille[0].length;
+    result = Array.from({length: (maxy+1)},()=>Array.from({length: maxx+1},()=>0);
+    result.forEach((line,x)=>{
+      line.forEach((value,y)=>{
+        if(pquadrille[x][y])
+      })
+    })
+    createQuadrille(result);
+  
+  } */
 }
 // Details here:
 // https://github.com/processing/p5.js/blob/main/contributor_docs/creating_libraries.md
@@ -131,16 +144,17 @@ class Quadrille {
   p5.prototype.createBoard = function(width, height) {
     return new Quadrille(width, height);
   };
-  p5.prototype.createPoliomino = async(n,object)=>{//create a quadrille with a n-mino, filled with filler
+  p5.prototype.createPoliomino = async(n,object,vari)=>{//create a quadrille with a n-mino, filled with filler
     if(!(n>0 && typeof n === "number" && Math.floor(n)==n)){ throw new Error(`n-minos doesn't exist`);
    }else{
-/*    poliominoGenerator(n,object).then(value =>{
+/*     let resolution =  await  
+     poliominoGenerator(n,object).then(value =>{
      let poliquadrille = value;
     console.log("tried", poliquadrille);
     total = undefined;
     return poliquadrille;
    }); */
-   let poliquadrille = await poliominoGenerator(n,object);
+    let poliquadrille = await poliominoGenerator(n,object);
    return poliquadrille;
   }
   }
@@ -184,13 +198,9 @@ class Quadrille {
 })();
 var grid;
 var halt;
-var total, poliprocess;//the polyomino made quadrille, verify polyomino in process
-var idinterval1, idinterval2;
-var net;
+var poliprocess;//the polyomino made quadrille, verify polyomino in process
+var net,nets;//the tries and the array with all polyominos
 var dirs = [[0,1],[1,0],[0,-1],[-1,0]];
-var nets;
-var adder;
-var children = {};
 var stime,dtime,ldtime ;//start time, total time of generating poliominos,verification of the end
 //extra functions for polyomino generations
 const poliominoGenerator = async(n,object)=>{
@@ -200,33 +210,35 @@ const poliominoGenerator = async(n,object)=>{
   grid = {
    x: 2*n-3,
    y: 2*n-1,}
+   var children ={};
   halt = false;
   stime = new Date().getTime();//initial time
   net = [[(grid.x-1)/2,(grid.y-1)/2]];//,[(grid.x-1)/2 ,(grid.y-1)/2 + 1]];
   nets = [];//array with all pieces
   fn = function () {return ;};
   for (i=n-1; i>0; i--) {
-   fn = makeAdder(i,fn);
+   fn = makeAdder(i,fn,children);
   }
-  adder = fn; 
-  picture(); 
-  let poliomino = await asynchonic(n,object);
+  var adder = fn; 
+  picture(adder); 
+  let poliomino = await asynchonic(n,object,adder);
   return poliomino
 }
-function asynchonic(n,filler){
+const asynchonic = async(n,filler,adder)=>{
   console.log("lol");
-  idinterval2= setInterval(picture,1);
+  let idinterval2 = setInterval(()=>{picture(adder)},1);
   return new Promise((resolve)=>{
-    idinterval1 = setInterval(()=>{ 
+   let idinterval1 = setInterval(()=>{ 
     if(ldtime == dtime){
     let ln=nets[nets.length-1];
     console.log(n,"poliomino took ",dtime, "seconds");
-    clearInterval(idinterval1);
-    clearInterval(idinterval2);
     if(nets.length >=2){
       let tried = ln[Math.floor(Math.random()* ln.length)];
        let ready = matricialize(tried,filler);
+       clearInterval(idinterval1);
+       clearInterval(idinterval2);
        resolve(ready);
+       return(ready);
     }
   }else
     ldtime = dtime},20);
@@ -250,35 +262,8 @@ function matricialize(tried,filler){
     if(filler)
     total.changeNode(tried,filler);
     else total.changeNode(tried,color('cyan'));
-    console.table(total);
     return total;
 }
-function matricial(){
-  if(ldtime == dtime){
-    let filler = arguments["0"]["1"],n = arguments["0"]["0"];
-    let maxx=0,maxy =0,miny=0,ln=nets[nets.length-1];
-    console.log(n,"poliomino took ",dtime, "seconds");
-    clearInterval(idinterval1);
-    clearInterval(idinterval2);
-    if(nets.length >=2){
-      let tried = ln[Math.floor(Math.random()* ln.length)];
-      tried.forEach((point) => {
-        if(point[1]>maxy) maxy = point[1];
-        if(point[1]<miny) miny = point[1];
-        if(point[0]>maxx) maxx = point[0];
-      });
-		let total = createQuadrille(Array.from({length: (maxy-miny+1)},()=>Array.from({length: maxx+1},()=>0)));
-		tried.forEach((point)=>{
-      point[1]=point[1]-miny;});
-      if(filler)
-      total.changeNode(tried,filler);
-      else total.changeNode(tried,color('cyan'));
-      resolve(total);
-      console.table(total);
-      return total;
-    }
-  }else
-    ldtime = dtime  }
   function checkNet(n,ns) {
     var i,j,k,l,nl,nn,nnn,equal;
     nl = n.length;
@@ -328,7 +313,7 @@ nn[i][1] -= nn[0][1];
   nn[0] = [0,0];
   return nn;
 }
-function picture(){
+function picture(adder){
   var pnet,rnet;
   if (halt) {
 return;
@@ -345,8 +330,10 @@ nets[net.length].push(pnet);
   }
   dtime = ((new Date().getTime() - stime)/1000).toFixed(3);
 ;}
+function verification(){
 
-function makeAdder (lvl,fn) {
+}
+function makeAdder (lvl,fn,children) {
   var sq = 0;
   var nsq = -1;
   return function (stop) {
